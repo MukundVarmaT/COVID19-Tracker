@@ -43,23 +43,37 @@ def update_value(input_data, date):
         pass    
     elif input_data[0] in countries:
         time, time_number_days, cases_ref, deaths_ref, recovered_ref = d.get_data(input_data[0])
+        time_start = dt.strptime(time[0],'%Y-%m-%d').date()
         time_end = dt.strptime(time[len(time)-1],'%Y-%m-%d').date()
         date = dt.strptime(date,'%Y-%m-%d').date()
         extra = int((date-time_end).days)
-                
-        time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = main.fit_country(input_data[0], extra)
+
+        t = []
+        for i in range((date - time_start).days + 1):
+            day = time_start + timedelta(days=i)
+            t.append(day)
         
+        time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = main.fit_country(input_data[0], extra)
+        c = []
+        r = []
+        de = []
+        i = 0
+        while i < len(cases_sim):
+            c.append(cases_sim[i])
+            r.append(recovered_sim[i])
+            de.append(deaths_sim[i])
+            i = i + 2
         
         return dcc.Graph(
             id='example-graph',
             figure={
                 'data': [
-                    {'x': time_sim, 'y': cases_sim, 'type': 'line', 'name': "CONFIRMED - simulated"},
-                    {'x': time_sim, 'y': recovered_sim, 'type': 'line', 'name': "RECOVERED - simulated"},
-                    {'x': time_sim, 'y': deaths_sim, 'type': 'line', 'name': "DEATHS - simulated"},
-                    {'x': time_number_days, 'y': cases_ref, 'type': 'scattergl','mode': 'markers', 'name': "CONFIRMED - real"},
-                    {'x': time_number_days, 'y': recovered_ref, 'type': 'scattergl','mode': 'markers', 'name': "RECOVERED - real"},
-                    {'x': time_number_days, 'y': deaths_ref, 'type': 'scattergl', 'mode': 'markers', 'name': "DEATHS - real"},
+                    {'x': t, 'y': c, 'type': 'line', 'name': "CONFIRMED - simulated"},
+                    {'x': t, 'y': r, 'type': 'line', 'name': "RECOVERED - simulated"},
+                    {'x': t, 'y': de, 'type': 'line', 'name': "DEATHS - simulated"},
+                    {'x': time, 'y': cases_ref, 'type': 'scattergl','mode': 'markers', 'name': "CONFIRMED - real"},
+                    {'x': time, 'y': recovered_ref, 'type': 'scattergl','mode': 'markers', 'name': "RECOVERED - real"},
+                    {'x': time, 'y': deaths_ref, 'type': 'scattergl', 'mode': 'markers', 'name': "DEATHS - real"},
                 ],
                 'layout': {
                     'title': input_data

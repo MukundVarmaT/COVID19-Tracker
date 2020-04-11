@@ -14,10 +14,4 @@ Forcasting the Covid - 19 Pandemic
 
 **India**
 
-![india](images/india-2.png)
-
-**China**
-
-![china](images/china-1.png)
-
-The results are pretty good and the model is going to improve as it gets more data.
+![india](images/india.png)
