@@ -2,7 +2,7 @@ from scipy.optimize import fsolve
 import math
 
 
-def calculate_epidemic(hosp_cap, mobility, t_final, healthy_n=1, infected_n=0.01, recovery_probab_init=1/(51-32),recovery_probab_minus=1/(51-32)/2, death_probab_init=0.02, death_probab_plus=0.01):
+def calculate_epidemic(hosp_cap, mobility, t_final, healthy_n=1, infected_n=0.01, recovery_probab_init=1/(51-32), death_probab_init=0.02):
     '''
     Arguments:
     - hosp_cap: hospital capacity
@@ -18,13 +18,13 @@ def calculate_epidemic(hosp_cap, mobility, t_final, healthy_n=1, infected_n=0.01
         if I < hosp_cap:
             return recovery_probab_init
         else:
-            return recovery_probab_init - recovery_probab_minus
+            return recovery_probab_init - (I - hosp_cap)/I
 
     def death_probab(I):
         if I < hosp_cap:
             return death_probab_init
         else:
-            return death_probab_init + death_probab_plus
+            return death_probab_init + (I-hosp_cap)/I
 
     rec_n = 0
     dead_n = 0

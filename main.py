@@ -3,9 +3,12 @@ import epidemic
 import scipy.optimize
 from scipy import interpolate
 import matplotlib.pyplot as plt
-
+import pandas as pd
 
 def fit_country(country, extra=0):
+    other_data = pd.read_csv("other_data.csv")
+    other_data = other_data[other_data["country"]==country]
+    
     
     def cost(inital_guess):
         (a, b, c) = inital_guess
@@ -13,7 +16,7 @@ def fit_country(country, extra=0):
         recovery_probab = 10 ** (-b)
         death_probab = 10 ** (-c)
         
-        time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = epidemic.calculate_epidemic(hosp_cap = 0, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days), recovery_probab_init= recovery_probab, recovery_probab_minus=0, death_probab_init= death_probab, death_probab_plus=0) 
+        time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = epidemic.calculate_epidemic(hosp_cap = hosp_cap, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days), recovery_probab_init= recovery_probab, death_probab_init= death_probab) 
         interp_cases = interpolate.interp1d(time_sim, cases_sim, fill_value="extrapolate")
         interp_deaths = interpolate.interp1d(time_sim, deaths_sim, fill_value="extrapolate")
         interp_recovered = interpolate.interp1d(time_sim, recovered_sim, fill_value="extrapolate")
@@ -32,6 +35,7 @@ def fit_country(country, extra=0):
     
     
     healthy_n = 1e5
+    hosp_cap = int(other_data["hospital capacity"].values[0])
     time, time_number_days, cases_ref, deaths_ref, recovered_ref = data.get_data(country)
     
     infected_n = cases_ref[0]
@@ -54,7 +58,7 @@ def fit_country(country, extra=0):
     print("recovered_probab = %.2e" % recovery_probab)
     print("death_probab = %.2e" % death_probab)
     
-    time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = epidemic.calculate_epidemic(hosp_cap = 0, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days) + extra, recovery_probab_init= recovery_probab, recovery_probab_minus=0, death_probab_init= death_probab, death_probab_plus=0) 
+    time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = epidemic.calculate_epidemic(hosp_cap = hosp_cap, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days) + extra, recovery_probab_init= recovery_probab, death_probab_init= death_probab) 
     return time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim
 
 def plot(x1, y1, x2, y2, ylabel, legends, color):
@@ -79,7 +83,6 @@ if __name__ == "__main__":
     country = "India"
     time, time_number_days, cases_ref, deaths_ref, recovered_ref = data.get_data(country)
     time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = fit_country(country)
-    print(time_sim)
     plot(time_sim, cases_sim, time_number_days, cases_ref,
              "Number of actives cases",
              ["Predicted cases", "Actual cases"],

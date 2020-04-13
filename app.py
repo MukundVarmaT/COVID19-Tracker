@@ -11,6 +11,9 @@ from datetime import datetime as dt
 from datetime import timedelta
 temp = d.fetch_data()
 countries = [i for i in temp]
+countries.remove("MS Zaandam")
+countries.remove("Holy See")
+countries.remove("Diamond Princess")
 
 app = dash.Dash()
 
