@@ -5,7 +5,7 @@ from scipy import interpolate
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def fit_country(country, extra=0):
+def fit_country(country, extra=0, start_date=False):
     other_data = pd.read_csv("other_data.csv")
     other_data = other_data[other_data["country"]==country]
     
@@ -37,7 +37,8 @@ def fit_country(country, extra=0):
     healthy_n = 1e5
     hosp_cap = int(other_data["hospital capacity"].values[0])
     time, time_number_days, cases_ref, deaths_ref, recovered_ref = data.get_data(country)
-    
+    if len(time) == 0:
+        return None, None, None, None, None, None
     infected_n = cases_ref[0]
     inital_guess = (5, 1.9, 2)
     print("Fitting!.......")
@@ -59,6 +60,10 @@ def fit_country(country, extra=0):
     print("death_probab = %.2e" % death_probab)
     
     time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = epidemic.calculate_epidemic(hosp_cap = hosp_cap, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days) + extra, recovery_probab_init= recovery_probab, death_probab_init= death_probab) 
+
+    if start_date:
+        return time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim, time[0]
+        
     return time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim
 
 def plot(x1, y1, x2, y2, ylabel, legends, color):

@@ -1,0 +1,143 @@
+country,iso_alpha
+Afghanistan,AFG
+Albania,ALB
+Algeria,DZA
+Angola,AGO
+Argentina,ARG
+Australia,AUS
+Austria,AUT
+Bahrain,BHR
+Bangladesh,BGD
+Belgium,BEL
+Benin,BEN
+Bolivia,BOL
+Bosnia and Herzegovina,BIH
+Botswana,BWA
+Brazil,BRA
+Bulgaria,BGR
+Burkina Faso,BFA
+Burundi,BDI
+Cambodia,KHM
+Cameroon,CMR
+Canada,CAN
+Central African Republic,CAF
+Chad,TCD
+Chile,CHL
+China,CHN
+Colombia,COL
+Comoros,COM
+Congo (Kinshasa),COD
+Congo (Brazzaville),COG
+Costa Rica,CRI
+Cote d'Ivoire,CIV
+Croatia,HRV
+Cuba,CUB
+Czechia,CZE
+Denmark,DNK
+Djibouti,DJI
+Dominican Republic,DOM
+Ecuador,ECU
+Egypt,EGY
+El Salvador,SLV
+Equatorial Guinea,GNQ
+Eritrea,ERI
+Ethiopia,ETH
+Finland,FIN
+France,FRA
+Gabon,GAB
+Gambia,GMB
+Germany,DEU
+Ghana,GHA
+Greece,GRC
+Guatemala,GTM
+Guinea,GIN
+Guinea-Bissau,GNB
+Haiti,HTI
+Honduras,HND
+"Hong Kong, China",HKG
+Hungary,HUN
+Iceland,ISL
+India,IND
+Indonesia,IDN
+Iran,IRN
+Iraq,IRQ
+Ireland,IRL
+Israel,ISR
+Italy,ITA
+Jamaica,JAM
+Japan,JPN
+Jordan,JOR
+Kenya,KEN
+"Korea, North",KOR
+"Korea, South",KOR
+Kuwait,KWT
+Lebanon,LBN
+Lesotho,LSO
+Liberia,LBR
+Libya,LBY
+Madagascar,MDG
+Malawi,MWI
+Malaysia,MYS
+Mali,MLI
+Mauritania,MRT
+Mauritius,MUS
+Mexico,MEX
+Mongolia,MNG
+Montenegro,MNE
+Morocco,MAR
+Mozambique,MOZ
+Burma,MMR
+Namibia,NAM
+Nepal,NPL
+Netherlands,NLD
+New Zealand,NZL
+Nicaragua,NIC
+Niger,NER
+Nigeria,NGA
+Norway,NOR
+Oman,OMN
+Pakistan,PAK
+Panama,PAN
+Paraguay,PRY
+Peru,PER
+Philippines,PHL
+Poland,POL
+Portugal,PRT
+Puerto Rico,PRI
+Reunion,REU
+Romania,ROU
+Rwanda,RWA
+Sao Tome and Principe,STP
+Saudi Arabia,SAU
+Senegal,SEN
+Serbia,SRB
+Sierra Leone,SLE
+Singapore,SGP
+Slovakia,SVK
+Slovenia,SVN
+Somalia,SOM
+South Africa,ZAF
+Spain,ESP
+Sri Lanka,LKA
+Sudan,SDN
+Eswatini,SWZ
+Sweden,SWE
+Switzerland,CHE
+Syria,SYR
+Taiwan*,TWN
+Tanzania,TZA
+Thailand,THA
+Togo,TGO
+Trinidad and Tobago,TTO
+Tunisia,TUN
+Turkey,TUR
+Uganda,UGA
+United Kingdom,GBR
+US,USA
+Uruguay,URY
+Venezuela,VEN
+Vietnam,VNM
+West Bank and Gaza,PSE
+Yemen,YEM
+Zambia,ZMB
+Zimbabwe,ZWE

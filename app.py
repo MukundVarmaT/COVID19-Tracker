@@ -9,11 +9,17 @@ import data as d
 import main
 from datetime import datetime as dt
 from datetime import timedelta
+import plotly.graph_objs as go
+import all_country
+
 temp = d.fetch_data()
 countries = [i for i in temp]
 countries.remove("MS Zaandam")
 countries.remove("Holy See")
 countries.remove("Diamond Princess")
+
+cases_country, days = all_country.load_data()
+time_step = 0
 
 app = dash.Dash()
 
@@ -33,7 +39,14 @@ app.layout = html.Div(children=[
         date=dt(2020, 5, 10).date()
     ),
     
-    html.Div(id='output-graph')
+    html.Div(id='output-graph'),
+    
+    dcc.Graph(id="world-map"),
+    dcc.Interval(
+            id='graph-update',
+            interval=1*200
+        )
+    
     ])
 
 @app.callback(
@@ -86,6 +99,28 @@ def update_value(input_data, date):
     else:
         return "Country name incorrect or does'nt exist in database"
     
+
+@app.callback(
+    Output("world-map", "figure"),
+    [Input('graph-update', 'n_intervals')])
+def update_figure(selected):
+    global cases_country, time_step
+    countries = list(cases_country.keys())
+    cases = []
+    for country in countries:
+        cases.append(cases_country[country][time_step])
+    date = days[time_step]
+    trace = go.Choropleth(locations=countries,z=cases,text=countries,autocolorscale=False,
+                          colorscale="amp",marker={'line': {'color': 'rgb(180,180,180)','width': 0.5}},
+                          colorbar={"thickness": 10,"len": 0.5,"x": 0.9,"y": 0.7,"nticks":10,
+                                    'title': {"text": "Active cases - {}".format(date), "side": "bottom"}})
+    if time_step == len(days) - 1:
+        time_step = 0
+    else:    
+        time_step = time_step + 1
+    return {"data": [trace],
+            "layout": go.Layout(title="Active cases - {}".format(date),height=800,geo={'showframe': False,'showcoastlines': False,
+                                                                      'projection': {'type': "miller"}})}
 
 if __name__ == '__main__':
     app.run_server(debug=True)
