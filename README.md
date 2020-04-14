@@ -12,6 +12,10 @@ Forcasting the Covid - 19 Pandemic
 
 ![india](images/india.png)
 
+**China**
+
+![China](images/china.png)
+
 The model has done pretty well and will keep improving as it gets more and more data. But for cases like USA where the cases suddenly spiked up, the model has a comparatively large error but I am sure it will eventually be able to fit to the data.
 
 
