@@ -1,5 +1,5 @@
 import data
-import epidemic
+import simulate
 import scipy.optimize
 from scipy import interpolate
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ def fit_country(country, extra=0, start_date=False):
         recovery_probab = 10 ** (-b)
         death_probab = 10 ** (-c)
         
-        time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = epidemic.calculate_epidemic(hosp_cap = hosp_cap, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days), recovery_probab_init= recovery_probab, death_probab_init= death_probab) 
+        time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = simulate.calculate_epidemic(hosp_cap = hosp_cap, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days), recovery_probab_init= recovery_probab, death_probab_init= death_probab) 
         interp_cases = interpolate.interp1d(time_sim, cases_sim, fill_value="extrapolate")
         interp_deaths = interpolate.interp1d(time_sim, deaths_sim, fill_value="extrapolate")
         interp_recovered = interpolate.interp1d(time_sim, recovered_sim, fill_value="extrapolate")
@@ -59,7 +59,7 @@ def fit_country(country, extra=0, start_date=False):
     print("recovered_probab = %.2e" % recovery_probab)
     print("death_probab = %.2e" % death_probab)
     
-    time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = epidemic.calculate_epidemic(hosp_cap = hosp_cap, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days) + extra, recovery_probab_init= recovery_probab, death_probab_init= death_probab) 
+    time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = simulate.calculate_epidemic(hosp_cap = hosp_cap, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days) + extra, recovery_probab_init= recovery_probab, death_probab_init= death_probab) 
 
     if start_date:
         return time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim, time[0]

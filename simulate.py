@@ -2,14 +2,14 @@ from scipy.optimize import fsolve
 import math
 
 
-def calculate_epidemic(hosp_cap, mobility, t_final, healthy_n=1, infected_n=0.01, recovery_probab_init=1/(51-32), death_probab_init=0.02):
+def calculate_epidemic(hosp_cap, mobility, t_final, healthy_n, infected_n, recovery_probab_init, death_probab_init):
     '''
     Arguments:
     - hosp_cap: hospital capacity
     - mobility: People's mobility (0 means perfect confinement)
     - t_final: time of simulation
     '''
-    dt = 5e-1
+    dt = 0.5
 
     def infection_probab(mobility):
         return 0.4*mobility
