@@ -11,6 +11,27 @@ from datetime import datetime as dt
 from datetime import timedelta
 import plotly.graph_objs as go
 import all_country
+from collections import deque
+import threading
+import twitter_stream
+import plotly
+import base64
+import tweet_analysis
+
+t1 = threading.Thread(target=twitter_stream.stream_tweets)
+t1.start()
+while True:
+    if len(twitter_stream.tweet_csv) == 20:
+        break
+
+i = 0
+X = deque(maxlen=20)
+X.append(i)
+Y = deque(maxlen=20)
+Y.append(0)
+pos_count = 0
+nue_count = 0
+neg_count = 0
 
 temp = d.fetch_data()
 countries = [i for i in temp]
@@ -20,6 +41,8 @@ countries.remove("Diamond Princess")
 
 cases_country, days = all_country.load_data()
 time_step = 0
+test_png = 'wordcloud.png'
+test_base64 = base64.b64encode(open(test_png, 'rb').read()).decode('ascii')
 
 app = dash.Dash()
 
@@ -45,7 +68,28 @@ app.layout = html.Div(children=[
     dcc.Interval(
             id='graph-update',
             interval=1*200
-        )
+        ),
+    
+    html.Div(html.H1("Sentiment Analysis")),
+    
+    html.Div([
+        dcc.Graph(id='sentiment-graph', animate=True),], style={'width':'50%','display': 'inline-block',"horizontal-align":"left"}),
+    dcc.Interval(
+            id='sentiment-update',
+            interval=1*1500
+        ),
+    
+    html.Div([
+        dcc.Graph(id='sentiment-pie', animate=False),], style={'width':'50%','display': 'inline-block',"horizontal-align":"right"}),
+    
+    html.Div(id="recent-tweets-table"),
+    
+    html.Div([
+        html.Img(id = "wordcloud",src='data:image/png;base64,{}'.format(test_base64), width='100%')]),
+    dcc.Interval(
+            id='wordcloud-update',
+            interval=1*10000
+        ),
     
     ])
 
@@ -121,6 +165,91 @@ def update_figure(selected):
     return {"data": [trace],
             "layout": go.Layout(title="Active cases - {}".format(date),height=800,geo={'showframe': False,'showcoastlines': False,
                                                                       'projection': {'type': "miller"}})}
+
+@app.callback(Output('sentiment-graph', 'figure'),
+              [Input('sentiment-update', 'n_intervals')])
+def update_sentiment_graph(selected):
+    global i, X, Y
+    sent = np.mean(twitter_stream.tweet_csv["Sentiment"][i:i+4].values)
+    if sent > 0:
+        color = "green"
+    elif sent == 0:
+        color = "blue"
+    else:
+        color = "red"
+    X.append(i)
+    Y.append(sent)
+    data = plotly.graph_objs.Scatter(x=list(X),y=list(Y),name='Scatter',mode= 'lines+markers', fill='tozeroy', line_color=color)
+    i = i + 1
+    return {'data': [data],'layout' : go.Layout(xaxis=dict(range=[min(X),max(X)]),
+                                                    yaxis=dict(range=[min(Y),max(Y)]),)}
+
+
+@app.callback(Output('sentiment-pie', 'figure'),
+              [Input('sentiment-update', 'n_intervals')])
+def update_sentiment_pie(selected):
+    global pos_count, nue_count, neg_count, i
+    sent = twitter_stream.tweet_csv["Sentiment"][i]
+    if sent > 0:
+        pos_count = pos_count + 1
+    elif sent == 0:
+        nue_count = nue_count + 1
+    else:
+        neg_count = neg_count + 1
+    colors = ['#007F25', "#add8e6",'#800000']
+    trace = plotly.graph_objs.Pie(labels=["Positive", "Nuetral", "Negative"], values=[pos_count,nue_count,neg_count],
+                              marker=dict(colors = colors))
+    return {"data":[trace],'layout' : go.Layout(
+                                                  title="Positive, Nuetral & Negative sentiment",showlegend=True)}
+    
+def quick_color(s):
+    if s > 0:
+        return "#90EE90"
+    elif s < 0:
+        return "#FF6666"
+    else:
+        return "#6666ff"
+
+def generate_table(df, max_rows=5):
+    return html.Table(className="responsive-table",
+                      children=[
+                          html.Thead(
+                              html.Tr(
+                                  children=[
+                                      html.Th(col.title()) for col in df.columns.values]
+                                  )
+                              ),
+                          html.Tbody(
+                              [
+                                  
+                              html.Tr(
+                                  children=[
+                                      html.Td(data) for data in d
+                                      ], style={'background-color':quick_color(d[1])}
+                                  )
+                               for d in df.values.tolist()])
+                          ]
+    )
+
+@app.callback(
+              Output('recent-tweets-table','children'),
+            [Input('sentiment-update', 'n_intervals')])
+def update_recent_tweets(sentiment_term):
+    global i
+    df = twitter_stream.tweet_csv[i:i+5]
+    return generate_table(df, max_rows=5)
+
+@app.callback(Output("wordcloud", "src"),
+             [Input('wordcloud-update', 'n_intervals')])
+def update_body_image(hover_data):
+    global i
+    data = twitter_stream.tweet_csv[i:i+10]
+    data = data.reset_index(drop=True)
+    tweet_analysis.data_to_cloud(data)
+    test_base64 = base64.b64encode(open(test_png, 'rb').read()).decode('ascii')
+    src = src='data:image/png;base64,{}'.format(test_base64)
+    return src
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)

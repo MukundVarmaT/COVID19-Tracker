@@ -17,3 +17,7 @@ The model has done pretty well and will keep improving as it gets more and more 
 **World Map - Heat map for active cases (forecasted) from start till 60 days from now**
 
 ![world-map](images/world-map.gif)
+
+**Sentiment Analysis**
+
+![sentiment](images/sentiment.gif)
