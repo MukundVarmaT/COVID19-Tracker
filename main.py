@@ -1,105 +1,95 @@
 import data
+import time
 import simulate
 import scipy.optimize
 from scipy import interpolate
 import matplotlib.pyplot as plt
-import pandas as pd
+from datetime import datetime, timedelta
 
-def fit_country(country, extra=0, start_date=False):
-    other_data = pd.read_csv("other_data.csv")
-    other_data = other_data[other_data["country"]==country]
-    
-    
-    def cost(inital_guess):
-        (a, b, c) = inital_guess
-        mobility = 10 ** (-a)
-        recovery_probab = 10 ** (-b)
-        death_probab = 10 ** (-c)
+class covid:
+    def __init__(self):
+        self.all_data = data.fetch_data()
+        self.find_countries()
+        self.country_params = {}
+        self.get_real_data()  
+        self.simulator = simulate.simulate_epidemic(5, 1.9, 2)
+        self.colors = {
+            "active": "#FFA500",
+            "deaths": "#B22222",
+            "recovered": "#008000",
+        }
         
-        time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = simulate.calculate_epidemic(hosp_cap = hosp_cap, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days), recovery_probab_init= recovery_probab, death_probab_init= death_probab) 
-        interp_cases = interpolate.interp1d(time_sim, cases_sim, fill_value="extrapolate")
-        interp_deaths = interpolate.interp1d(time_sim, deaths_sim, fill_value="extrapolate")
-        interp_recovered = interpolate.interp1d(time_sim, recovered_sim, fill_value="extrapolate")
+    # function to get all the countries    
+    def find_countries(self):
+        self.countries = [x for x in self.all_data]
+        self.countries.remove("MS Zaandam")
+        self.countries.remove("Holy See")
+        self.countries.remove("Diamond Princess")
+    
+    # getting real data
+    def get_real_data(self):
+        self.country_real = {}
+        c_remove = []
+        for country in self.countries:
+            time, cases, deaths, recovered = data.get_data(country, self.all_data)
+            if time == []:
+                c_remove.append(country)
+            else:    
+                self.country_real[country] = {"time":time, "cases":cases, "deaths":deaths, "recovered": recovered}
+        # remove all the unwanted countries - less data
+        for rem in c_remove:
+            self.countries.remove(rem)
+    
+    def remove_fractions(self, time, sick, recovered, deaths):
+        t, s, r, d = [], [], [], []
+        i = 0
+        while i < len(time):
+            t.append(time[i])
+            s.append(sick[i])
+            r.append(recovered[i])
+            d.append(deaths[i])
+            i = i + 2
+        return t, s, r, d        
+    
+    def simulate_country(self, country, plot=False, extra=0):
+        time_ref, cases_ref, deaths_ref, recovered_ref = self.country_real[country].values()
+        a, b, c = self.simulator.fit_country(time_ref, cases_ref, recovered_ref, deaths_ref)
+        self.country_params[country] = (a, b, c)
+        time, sick, recovered, deaths = self.simulator.calculate_epidemic(len(time_ref)+extra, 1e5, cases_ref[0], a, b, c)
+        time, sick, recovered, deaths = self.remove_fractions(time, sick, recovered, deaths)
+        if plot:
+            self.plot_all(country, time, sick, recovered, deaths)
+    
+    def convert_dates(self, start, num_days):
         
-        c = 0
+        start = datetime.strptime(start, '%Y-%m-%d').date()
+        days = []
+        for i in range(num_days):
+            day = start + timedelta(days=i)
+            days.append(day)
+        return days
         
-        for i in range(len(time_number_days)):
-            c = c + 5*(abs(deaths_ref[i] - interp_deaths(time_number_days[i])))
-            c = c + 10*(abs(cases_ref[i] - interp_cases(time_number_days[i])))
-            c = c + (abs(recovered_ref[i] - interp_recovered(time_number_days[i])))
-            
-        c = c/(3*(len(time_number_days)))
+    def plot_all(self, country, time, sick, recovered, deaths):
+        time_ref, cases_ref, deaths_ref, recovered_ref = self.country_real[country].values()
+        x1 = self.convert_dates(time_ref[0], len(time_ref))
+        x2 = self.convert_dates(time_ref[0], len(time))
         
-        # print("Fit Mean difference : " + str(c), end="/r")
-        return c
-    
-    
-    healthy_n = 1e5
-    hosp_cap = int(other_data["hospital capacity"].values[0])
-    time, time_number_days, cases_ref, deaths_ref, recovered_ref = data.get_data(country)
-    if len(time) == 0:
-        return None, None, None, None, None, None
-    infected_n = cases_ref[0]
-    inital_guess = (5, 1.9, 2)
-    print("Fitting!.......")
-    
-    res = scipy.optimize.minimize(cost, inital_guess, method = "Nelder-Mead")
-    opt = res.x
-    print("-"*50)
-    
-    (a,b,c) = opt
-    
-    mobility = 10 ** (-a)
-    recovery_probab = 10 ** (-b)
-    death_probab = 10 ** (-c)
-    
-    print("Fit mean difference: " + "{:.2%}".format(res.fun))
-    
-    print("mobility = %.2e" % mobility)
-    print("recovered_probab = %.2e" % recovery_probab)
-    print("death_probab = %.2e" % death_probab)
-    
-    time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = simulate.calculate_epidemic(hosp_cap = hosp_cap, mobility=mobility, healthy_n = healthy_n, infected_n = infected_n, t_final = max(time_number_days) + extra, recovery_probab_init= recovery_probab, death_probab_init= death_probab) 
-
-    if start_date:
-        return time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim, time[0]
+        plt.figure()
+        plt.scatter(x1, cases_ref, c = self.colors["active"])
+        plt.scatter(x1, recovered_ref, c = self.colors["recovered"])
+        plt.scatter(x1, deaths_ref, c = self.colors["deaths"])
         
-    return time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim
+        plt.plot(x2, sick, c = self.colors["active"])
+        plt.plot(x2, recovered, c = self.colors["recovered"])
+        plt.plot(x2, deaths, c = self.colors["deaths"])
+        
+        plt.show()
 
-def plot(x1, y1, x2, y2, ylabel, legends, color):
-
-    fig, ax = plt.subplots()
-    plt.title(country)
-    plt.ylabel(ylabel)
-    plt.xlabel("Days")
-    plt.fill_between(x1, 0, y1, facecolor=color, alpha=0.1)
-    plt.plot(x1, y1, label=legends[0],
-             color=color, zorder=1)
-    plt.scatter(x2, y2, label=legends[1],
-                color=color, zorder=3, edgecolors="white", s=40)
-    plt.minorticks_on()
-    ax.grid(which='minor', alpha=0.3)
-    ax.grid(which='major', alpha=0.7)
-    ax.set_axisbelow(True)
-    plt.legend()
-
-
+        
+        
+    
 if __name__ == "__main__":
-    country = "India"
-    time, time_number_days, cases_ref, deaths_ref, recovered_ref = data.get_data(country)
-    time_sim, cases_sim, healthy_sim, recovered_sim, deaths_sim = fit_country(country)
-    plot(time_sim, cases_sim, time_number_days, cases_ref,
-             "Number of actives cases",
-             ["Predicted cases", "Actual cases"],
-             "tab:blue")
-    plot(time_sim, deaths_sim, time_number_days, deaths_ref,
-            "Cumulative number of deaths",
-            ["Predicted deaths", "Actual number of deaths"],
-            "tab:red")
-    plot(time_sim, recovered_sim, time_number_days, recovered_ref,
-            "Cumulative number of recovered",
-            ["Predicted recovered", "Actual number of recovered"],
-            "tab:green")
-
-    plt.show()
-    
+    start = time.time()
+    COVID = covid()
+    COVID.simulate_country("India", True, 60)
+    print(time.time() - start)

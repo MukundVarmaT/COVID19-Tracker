@@ -15,16 +15,12 @@ def fetch_data():
     data = json.loads(requests.get(url).text)
     return data
 
-def get_data(country):
+def get_data(country, data):
     time, cases, deaths, recovered = [], [], [], []
-    data = fetch_data()
     for entry in data[country]:
         if float(entry["confirmed"]) > 50 and entry["recovered"] is not None:
             time.append(entry["date"])
             recovered.append(float(entry["recovered"]))
-            cases.append(float(entry["confirmed"]) - float(entry["recovered"]) - float(entry["deaths"]))
+            cases.append(float(entry["confirmed"])- float(entry["recovered"]) - float(entry["deaths"]))
             deaths.append(float(entry["deaths"]))
-        time_number_days = []
-        for t in time:
-            time_number_days.append(days_between(t, time[0]))
-    return time, time_number_days, cases, deaths, recovered
+    return time, cases, deaths, recovered
