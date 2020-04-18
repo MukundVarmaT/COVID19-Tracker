@@ -115,6 +115,16 @@ class covid:
         with open('data/all_country.pickle', 'rb') as handle:
             self.all_simulated_data = pickle.load(handle)
     
+    def get_stats(self):
+        active = []
+        deaths = []
+        recovered = []
+        for i in self.country_real:
+            time_ref, cases_ref, deaths_ref, recovered_ref = self.country_real[i].values()
+            active.append(cases_ref[-1])
+            deaths.append(deaths_ref[-1])
+            recovered.append(recovered_ref[-1])
+        return active, deaths, recovered
     
 if __name__ == "__main__":
     start = time.time()

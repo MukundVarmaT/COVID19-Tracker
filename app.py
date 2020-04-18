@@ -10,6 +10,14 @@ import plotly.graph_objs as go
 COVID = main.covid()
 COVID.get_lat_long()
 COVID.load_data()
+active_now, deaths_now, recovered_now = COVID.get_stats()
+stat =go.Sunburst(
+    labels=["Deaths", "Recovered", "Active Cases"] + COVID.countries + COVID.countries + COVID.countries,
+    parents=["", "", ""] + ["Deaths"]*len(COVID.countries) + ["Recovered"]*len(COVID.countries) + ["Active Cases"]*len(COVID.countries),
+    values=[sum(deaths_now), sum(recovered_now), sum(active_now)] + deaths_now + recovered_now + active_now,
+    marker=dict(
+        colorscale='amp')
+)
 time_step = 60
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -23,10 +31,10 @@ colors = {
     "active": "#FFA500",
     "deaths": "#B22222",
     "recovered": "#008000",
-    "graph-markers": "#FFFFFF"
+    "graph-markers": "#505050"
 }
 
-app.layout = html.Div(style={'backgroundColor': colors['background'], 'height':'2000px'}, children=[
+app.layout = html.Div(style={'backgroundColor': colors['background'], 'height':'1450px'}, children=[
     # Main Heading
     html.H1(
         children='Tracking the COVID-19 pandemic',
@@ -55,13 +63,27 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'height':'
     dcc.Graph(id="simulation graph", style = {"width":"100%", 'display': 'inline-block',"textAlign":"left"}),
     
     html.Div(html.H3("Worldwide Active Cases for the next 60 days"), 
-             style={'width':'60%','display': 'inline-block','textAlign': 'center','color': colors['text']}),
+             style={'width':'50%','display': 'inline-block','textAlign': 'center','color': colors['text']}),
+    
+    html.Div(html.H3("Worldwide Stats - Actual"), 
+             style={'width':'50%','display': 'inline-block','textAlign': 'center','color': colors['text']}),
     
     dcc.Graph(id="world-map",  style={'width':'50%','display': 'inline-block',"textAlign":"left", "height":"600px"}),
     dcc.Interval(
         id='graph-update',
-        interval=1*500
+        interval=1*250
         ),
+    dcc.Graph(
+        id='stats',
+        figure={'data': [stat],
+                'layout' : go.Layout(
+                            title='Click on the pie for details',
+                            font={'color':colors['graph-markers']},
+                            plot_bgcolor = colors['background'],
+                            paper_bgcolor = colors['background'],
+                            )},
+        style={'width':'50%','display': 'inline-block',"textAlign":"right", "height":"600px"}
+    )
    
 ])
 
@@ -151,7 +173,7 @@ def update_value(input_data, date):
                 y=[]
                 ) 
         return {'data': [temp],
-                'layout' : go.Layout(
+                'layout' : go.Layout(height=550,
                             title='Choose a Country',
                             font={'color':colors['graph-markers']},
                             plot_bgcolor = colors['background'],
