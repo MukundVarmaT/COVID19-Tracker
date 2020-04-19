@@ -130,5 +130,5 @@ if __name__ == "__main__":
     start = time.time()
     COVID = covid()
     # COVID.simulate_country("India", True, 60)
-    # COVID.fit_all(60)
+    COVID.fit_all(60)
     print(time.time() - start)

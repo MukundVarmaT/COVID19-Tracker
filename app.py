@@ -19,6 +19,7 @@ stat =go.Sunburst(
     marker=dict(
         colorscale='amp')
 )
+today = datetime.datetime.now().date()
 time_step = 60
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -68,17 +69,14 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'height':'
     html.Div([
         dcc.Graph(id='country-stats', animate=False),], style={'width':'30%','display': 'inline-block',"textAlign":"right"}),
     
-    html.Div(html.H3("Worldwide Active Cases for the next 60 days"), 
+    html.Div(html.H3("Worldwide Active Cases for next 60 days (Use slider)"), 
              style={'width':'50%','display': 'inline-block','textAlign': 'center','color': colors['text']}),
     
     html.Div(html.H3("Worldwide Stats - Actual"), 
              style={'width':'50%','display': 'inline-block','textAlign': 'center','color': colors['text']}),
     
     dcc.Graph(id="world-map",  style={'width':'50%','display': 'inline-block',"textAlign":"left", "height":"600px"}),
-    dcc.Interval(
-        id='graph-update',
-        interval=1*1000
-        ),
+
     dcc.Graph(
         id='stats',
         figure={'data': [stat],
@@ -89,7 +87,24 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'height':'
                             paper_bgcolor = colors['background'],
                             )},
         style={'width':'50%','display': 'inline-block',"textAlign":"right", "height":"600px"}
-    )
+    ),
+    
+    html.Div([dcc.Slider(
+        id='slider-graph',
+        min=0,
+        max=60,
+        step=1,
+        value=10,
+        marks={
+        0: {'label': '{}'.format(today + datetime.timedelta(days=0))},
+        10: {'label': '{}'.format(today + datetime.timedelta(days=10))},
+        20: {'label': '{}'.format(today + datetime.timedelta(days=20))},
+        30: {'label': '{}'.format(today + datetime.timedelta(days=30))},
+        40: {'label': '{}'.format(today + datetime.timedelta(days=40))},
+        50: {'label': '{}'.format(today + datetime.timedelta(days=50))},
+        60: {'label': '{}'.format(today + datetime.timedelta(days=60))}
+        })],
+        style={'width':'60%','display': 'inline-block',"textAlign":"left"}),
    
 ])
 
@@ -187,11 +202,9 @@ def update_value(input_data, date):
                             )}  
 @app.callback(
     Output("world-map", "figure"),
-    [Input('graph-update', 'n_intervals')])
-def update_worldmap(selected):
-    global time_step
-    if time_step == 0:
-        time_step = 60
+    [Input('slider-graph', 'value')])
+def update_worldmap(value):
+    time_step = 60 - int(value)
     cases = [COVID.all_simulated_data[x]["active"][-time_step] for x in COVID.all_simulated_data]
     data = go.Densitymapbox(lat=COVID.lat, lon=COVID.long, z=cases,radius=30)
     time_step = time_step - 1
