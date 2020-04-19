@@ -5,7 +5,8 @@ import datetime
 from dash.dependencies import Input, Output
 import main
 import plotly.graph_objs as go
-
+import flask
+import os
 
 COVID = main.covid()
 COVID.get_lat_long()
@@ -23,7 +24,9 @@ time_step = 60
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 map_box_key = "pk.eyJ1IjoibXVrdW5kdmFybWEiLCJhIjoiY2s5NTNubWUyMGpvdTNmb20wbmh5eHB5MCJ9.P6zlR2twAwpZNW-x_X-l3Q"
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = flask.Flask(__name__)
+server.secret_key = os.environ.get('secret_key', 'secret')
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets, server=server)
 map_box_key = "pk.eyJ1IjoibXVrdW5kdmFybWEiLCJhIjoiY2s5NTNubWUyMGpvdTNmb20wbmh5eHB5MCJ9.P6zlR2twAwpZNW-x_X-l3Q"
 colors = {
     'background': '#111111',
