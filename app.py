@@ -37,7 +37,7 @@ colors = {
     "graph-markers": "#505050"
 }
 
-app.layout = html.Div(style={'backgroundColor': colors['background'], 'height':'1450px'}, children=[
+app.layout = html.Div(style={'backgroundColor': colors['background'], 'height':'100%'}, children=[
     # Main Heading
     html.H1(
         children='Tracking the COVID-19 pandemic',
