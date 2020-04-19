@@ -60,7 +60,10 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'height':'
     ),
     
     # The simulation graph
-    dcc.Graph(id="simulation graph", style = {"width":"100%", 'display': 'inline-block',"textAlign":"left"}),
+    dcc.Graph(id="simulation graph", style = {"width":"70%", 'display': 'inline-block',"textAlign":"left"}),
+    
+    html.Div([
+        dcc.Graph(id='country-stats', animate=False),], style={'width':'30%','display': 'inline-block',"textAlign":"right"}),
     
     html.Div(html.H3("Worldwide Active Cases for the next 60 days"), 
              style={'width':'50%','display': 'inline-block','textAlign': 'center','color': colors['text']}),
@@ -100,7 +103,7 @@ def update_value(input_data, date):
                 y=[]
                 ) 
         return {'data': [temp],
-                'layout' : go.Layout(
+                'layout' : go.Layout(height=550,
                             title='Choose a Country',
                             font={'color':colors['graph-markers']},
                             plot_bgcolor = colors['background'],
@@ -160,7 +163,7 @@ def update_value(input_data, date):
 
 
         return {'data': [data1,data2, data3, data4, data5, data6],
-                'layout' : go.Layout(
+                'layout' : go.Layout(height=550,
                             title='{} till {}'.format(input_data[0], date),
                             font={'color':colors['graph-markers']},
                             plot_bgcolor = colors['background'],
@@ -196,6 +199,35 @@ def update_worldmap(selected):
                             plot_bgcolor = colors['background'],
                             paper_bgcolor = colors['background'],
                             )}
+
+@app.callback(Output('country-stats', 'figure'),
+              [Input(component_id='dropdown', component_property='value')])
+def update_pie(input_data):
+    col = [colors[i] for i in ["active", "deaths", "recovered"]]
+    if len(input_data) == 0:
+        trace = go.Pie(labels=["Active Cases", "Recovered", "Dead"], values=[0,0,0],
+                              marker=dict(colors = col))
+        return {"data":[trace],'layout' : go.Layout(height=550,font={'color':colors['graph-markers']},
+                                                    plot_bgcolor = colors['background'],
+                                                    paper_bgcolor = colors['background'],
+                                                  title="Choose Country",showlegend=False)}
+    elif input_data[0] in COVID.countries:
+        time_ref, cases_ref, deaths_ref, recovered_ref = COVID.country_real[input_data[0]].values()
+        trace = go.Pie(labels=["Active Cases", "Recovered", "Dead"], values=[cases_ref[-1],deaths_ref[-1],recovered_ref[-1]],
+                              marker=dict(colors = col))
+        return {"data":[trace],'layout' : go.Layout(height=550,font={'color':colors['graph-markers']},
+                                                    plot_bgcolor = colors['background'],
+                                                    paper_bgcolor = colors['background'],
+                                                  title="Actual Stats at {} on {}".format(input_data[0], datetime.datetime.now().date()),showlegend=True)}
+    else:
+        trace = go.Pie(labels=["Active Cases", "Recovered", "Dead"], values=[0,0,0],
+                              marker=dict(colors = col))
+        return {"data":[trace],'layout' : go.Layout(height=550,
+                                                  title="Country doesn't exist in DataBase",showlegend=False,
+                                                  font={'color':colors['graph-markers']},
+                                                    plot_bgcolor = colors['background'],
+                                                    paper_bgcolor = colors['background'])}
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
