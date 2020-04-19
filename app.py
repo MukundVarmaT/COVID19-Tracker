@@ -77,7 +77,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'height':'
     dcc.Graph(id="world-map",  style={'width':'50%','display': 'inline-block',"textAlign":"left", "height":"600px"}),
     dcc.Interval(
         id='graph-update',
-        interval=1*250
+        interval=1*1000
         ),
     dcc.Graph(
         id='stats',
