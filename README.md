@@ -1,13 +1,5 @@
 # COVID-19 Dashboard
 
-## Forcasting the Pandemic
+Check out the app here at : [link](https://covid-19-forecast.herokuapp.com/)
 
-![forcast](images/forcast1.gif)
 
-**Worldwide Trend for next 60 days**
-
-![forcast2](images/forcast2.gif)
-
-**Currnet Worldwide stats**
-
-![forcast3](images/forcast3.gif)
