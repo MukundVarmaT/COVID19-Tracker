@@ -218,7 +218,7 @@ def update_pie(input_data):
         return {"data":[trace],'layout' : go.Layout(height=550,font={'color':colors['graph-markers']},
                                                     plot_bgcolor = colors['background'],
                                                     paper_bgcolor = colors['background'],
-                                                  title="Actual Stats at {} on {}".format(input_data[0], datetime.datetime.now().date()),showlegend=True)}
+                                                  title="Actual Stats in {} as of {}".format(input_data[0], datetime.datetime.now().date()),showlegend=True)}
     else:
         trace = go.Pie(labels=["Active Cases", "Recovered", "Dead"], values=[0,0,0],
                               marker=dict(colors = col))
