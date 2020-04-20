@@ -15,6 +15,8 @@ import twitter_stream
 from collections import deque
 import numpy as np
 import base64
+import news_stream
+import dash_table
 
 # The app part!!
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -115,6 +117,8 @@ nue_count = 0
 neg_count = 0
 test_png = 'data/wordcloud.png'
 test_base64 = base64.b64encode(open(test_png, 'rb').read()).decode('ascii')
+NEWS_STREAM = news_stream.news(5)
+
 #############################################
 
 # The app layout!
@@ -282,8 +286,32 @@ app.layout = html.Div(style={'backgroundColor': colors["background"], 'height':'
         ]),
         
         
-        dcc.Tab(label='News', style=tab_style, selected_style=tab_selected_style, children=[
+        dcc.Tab(label='Latest News', style=tab_style, selected_style=tab_selected_style, children=[
             ## Tab 4 content
+            html.Div([dash_table.DataTable(
+                id='datatable-paging',
+                style_data={
+                    'whiteSpace': 'normal',
+                    'height': 'auto',
+                },
+                style_cell_conditional=[
+                        {
+                            'if': {'column_id': c},
+                            'textAlign': 'left'
+                        } for c in ['Date', 'Headlines', "Description"]
+                    ],
+                style_header={'backgroundColor': 'rgb(30, 30, 30)'},
+                style_cell={
+                    'backgroundColor': 'rgb(50, 50, 50)',
+                    'color': 'white'
+                },
+                columns=[
+                    {"name": i, "id": i} for i in (NEWS_STREAM.news_csv.columns)
+                ],
+                page_current=0,
+                page_size=10,
+                page_action='custom'
+                )],style={'width':'100%','color': colors['text'], "textAlign":"center","height":"1200px"})
         ]),
     ],style=tabs_styles
     )
@@ -645,6 +673,16 @@ def update_body_image(hover_data):
 #######################################################################
 
 
+########################################################################
+@app.callback(
+    Output('datatable-paging', 'data'),
+    [Input('datatable-paging', "page_current"),
+     Input('datatable-paging', "page_size")])
+def update_table(page_current,page_size):
+    return NEWS_STREAM.news_csv.iloc[
+        page_current*page_size:(page_current+ 1)*page_size
+    ].to_dict('records')
+####################################################################
 
 
 

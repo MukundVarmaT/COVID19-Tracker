@@ -1,0 +1,17 @@
+dash_core_components==1.8.1
+pandas==0.23.4
+dash_html_components==1.0.2
+Flask==1.1.1
+wordcloud==1.6.0
+scipy==1.4.1
+requests==2.22.0
+plotly==2.2.3
+Unidecode==1.1.1
+matplotlib==2.1.1
+tweepy==3.8.0
+numpy==1.13.3
+dash_table==4.6.1
+dash==1.9.1
+beautifulsoup4==4.9.0
+Pillow==7.1.1
+vaderSentiment==3.3.1

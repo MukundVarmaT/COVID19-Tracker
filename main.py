@@ -16,6 +16,7 @@ class covid:
         self.state_params = {}
         self.get_real_data()  
         self.simulator = simulate.simulate_epidemic(5, 1.9, 2)
+        self.state_simulator = simulate.simulate_epidemic(6.5, 0.9, 1.6)
         self.colors = {
             "active": "#FFA500",
             "deaths": "#B22222",
@@ -164,20 +165,20 @@ class covid:
         if state in self.state_params:
             a, b, c = self.state_params[state]
         else:    
-            a, b, c = self.simulator.fit_country(time_ref, cases_ref, recovered_ref, deaths_ref)
+            a, b, c = self.state_simulator.fit_country(time_ref, cases_ref, recovered_ref, deaths_ref)
             self.state_params[state] = (a, b, c)
-        time, sick, recovered, deaths = self.simulator.calculate_epidemic(len(time_ref)+extra, 1e5, cases_ref[0], a, b, c)
+        time, sick, recovered, deaths = self.state_simulator.calculate_epidemic(len(time_ref)+extra, 1e5, cases_ref[0], a, b, c)
         time, sick, recovered, deaths = self.remove_fractions(time, sick, recovered, deaths)
         if plot:
             self.plot_states(state, time, sick, recovered, deaths)
         else:
             return time, sick, recovered, deaths
     
-    def simulate_state_all(self):
+    def simulate_state_all(self, extra=60):
         self.all_simulated_states = {}
         for state in self.selected_indian_states:
             time_ref, _, _, _ = self.selected_indian_data[state].values()
-            time, sick, _, _ = self.simulate_state(state, 60)
+            time, sick, _, _ = self.simulate_state(state, extra)
             days = self.convert_dates(time_ref[0], len(time))
             self.all_simulated_states[state] = {"days":days, "active":sick}
         with open('data/all_states.pickle', 'wb') as handle:
@@ -206,8 +207,8 @@ class covid:
 if __name__ == "__main__":
     start = time.time()
     COVID = covid()
-    COVID.simulate_state("Tamil Nadu",0,True)
+    # COVID.simulate_state("Delhi",0,True)
     # COVID.simulate_country("India", True, 60)
-    # COVID.fit_all(60)
-    # COVID.simulate_state_all()
+    COVID.fit_all(60)
+    COVID.simulate_state_all(60)
     print(time.time() - start)
