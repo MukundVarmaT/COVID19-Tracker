@@ -10,6 +10,11 @@ import flask
 import os
 import json
 import random
+import threading
+import twitter_stream
+from collections import deque
+import numpy as np
+import base64
 
 # The app part!!
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -91,6 +96,25 @@ st_vis.append(go.Scatter(
                 name="India",
                 line_color = colors["active"]
                 ))
+
+t = threading.Thread(target = twitter_stream.stream_tweets )
+t.start()
+while len(twitter_stream.tweet_csv) < 10:
+    if len(twitter_stream.tweet_csv) == 5:
+        print("Starting soon")
+    pass
+
+
+i = 0
+X = deque(maxlen=20)
+X.append(i)
+Y = deque(maxlen=20)
+Y.append(0)
+pos_count = 0
+nue_count = 0
+neg_count = 0
+test_png = 'data/wordcloud.png'
+test_base64 = base64.b64encode(open(test_png, 'rb').read()).decode('ascii')
 #############################################
 
 # The app layout!
@@ -227,6 +251,34 @@ app.layout = html.Div(style={'backgroundColor': colors["background"], 'height':'
         
         dcc.Tab(label='What people think', style=tab_style, selected_style=tab_selected_style, children=[
             ## Tab 3 content
+            
+            html.Div(html.H3("Sentiment Analysis - What people think about the COVID"), 
+             style={'width':'100%','display': 'inline-block','color': colors['text'], "textAlign":"center"}),
+            
+            html.Div([
+                dcc.Graph(id='sentiment-graph', animate=True),], style={'width':'50%','display': 'inline-block',"textAlign":"left"}),
+            dcc.Interval(
+                id='sentiment-update',
+                interval=1*1500
+            ),
+            
+            html.Div([
+                dcc.Graph(id='sentiment-pie', animate=False),], style={'width':'50%','display': 'inline-block',"textAlign":"right"}),
+            
+            html.Div(id="recent-tweets-table", style={'width':'100%',"textAlign":"center"}),
+
+            html.Div(html.H3("Word Cloud for positive sentiment"), 
+             style={'width':'50%','display': 'inline-block','color': colors['text'], "textAlign":"left"}),
+            
+            html.Div(html.H3("Word Cloud for negative sentiment"), 
+             style={'width':'50%','display': 'inline-block','color': colors['text'], "textAlign":"right"}),
+            
+            html.Div([
+            html.Img(id = "wordcloud",src='data:image/png;base64,{}'.format(test_base64), style={'width':'100%',"textAlign":"center"})]),
+            dcc.Interval(
+                id='wordcloud-update',
+                interval=1*10000
+            ),
         ]),
         
         
@@ -500,7 +552,97 @@ def update_race(selected):
 ##########################################################################
 
 
+#########################################################################
 
+@app.callback(Output('sentiment-graph', 'figure'),
+              [Input('sentiment-update', 'n_intervals')])
+def update_sentiment_graph(selected):
+    global i, X, Y
+    sent = np.mean(twitter_stream.tweet_csv["Sentiment"][0:i+4].values)
+    if sent > 0:
+        color = "green"
+    elif sent == 0:
+        color = "blue"
+    else:
+        color = "red"
+    X.append(i)
+    Y.append(sent)
+    data = go.Scatter(x=list(X),y=list(Y),name='Scatter',mode= 'lines+markers', fill='tozeroy', line_color=color)
+    i = i + 1
+    return {'data': [data],'layout' : go.Layout(title="Average sentiment right now",
+                                                xaxis=dict(range=[min(X),max(X)]),
+                                                yaxis=dict(range=[min(Y),max(Y)]),
+                                                font={'color':colors['gray']},
+                                                plot_bgcolor = colors['background'],
+                                                paper_bgcolor = colors['background'])}
+    
+@app.callback(Output('sentiment-pie', 'figure'),
+              [Input('sentiment-update', 'n_intervals')])
+def update_sentiment_pie(selected):
+    global pos_count, nue_count, neg_count, i
+    sent = twitter_stream.tweet_csv["Sentiment"][i]
+    if sent > 0:
+        pos_count = pos_count + 1
+    elif sent == 0:
+        nue_count = nue_count + 1
+    else:
+        neg_count = neg_count + 1
+    col = ['#007F25', "#add8e6",'#800000']
+    trace = go.Pie(labels=["Positive", "Nuetral", "Negative"], values=[pos_count,nue_count,neg_count],
+                              marker=dict(colors = col))
+    return {"data":[trace],'layout' : go.Layout(title="Positive, Nuetral & Negative sentiment",showlegend=True,
+                                                font={'color':colors['gray']},
+                                                plot_bgcolor = colors['background'],
+                                                paper_bgcolor = colors['background'])}
+    
+def quick_color(s):
+    if s > 0:
+        return "#90EE90"
+    elif s < 0:
+        return "#FF6666"
+    else:
+        return "#6666ff"
+
+def generate_table(df, max_rows=5):
+    return html.Table(className="responsive-table",
+                      children=[
+                          html.Thead(
+                              html.Tr(
+                                  children=[
+                                      html.Th(col.title()) for col in df.columns.values]
+                                  )
+                              ),
+                          html.Tbody(
+                              [
+                                  
+                              html.Tr(
+                                  children=[
+                                      html.Td(data) for data in d
+                                      ], style={'background-color':quick_color(d[1])}
+                                  )
+                               for d in df.values.tolist()])
+                          ]
+    )
+    
+@app.callback(
+              Output('recent-tweets-table','children'),
+            [Input('sentiment-update', 'n_intervals')])
+def update_recent_tweets(sentiment_term):
+    global i
+    df = twitter_stream.tweet_csv[i:i+5]
+    return generate_table(df, max_rows=5)
+
+@app.callback(Output("wordcloud", "src"),
+             [Input('wordcloud-update', 'n_intervals')])
+def update_body_image(hover_data):
+    global i
+    data = twitter_stream.tweet_csv[i:i+10]
+    data = data.reset_index(drop=True)
+    twitter_stream.data_to_cloud(data)
+    test_base64 = base64.b64encode(open(test_png, 'rb').read()).decode('ascii')
+    src = src='data:image/png;base64,{}'.format(test_base64)
+    return src
+#######################################################################
 
 
 

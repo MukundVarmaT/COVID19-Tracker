@@ -159,7 +159,7 @@ class covid:
             self.indian_long.append(temp["Longitude"].values[0])
         self.select_states()
         
-    def simulate_state(self, state, extra=0):
+    def simulate_state(self, state, extra=0, plot=False):
         time_ref, cases_ref, deaths_ref, recovered_ref = self.selected_indian_data[state].values()
         if state in self.state_params:
             a, b, c = self.state_params[state]
@@ -168,7 +168,10 @@ class covid:
             self.state_params[state] = (a, b, c)
         time, sick, recovered, deaths = self.simulator.calculate_epidemic(len(time_ref)+extra, 1e5, cases_ref[0], a, b, c)
         time, sick, recovered, deaths = self.remove_fractions(time, sick, recovered, deaths)
-        return time, sick, recovered, deaths
+        if plot:
+            self.plot_states(state, time, sick, recovered, deaths)
+        else:
+            return time, sick, recovered, deaths
     
     def simulate_state_all(self):
         self.all_simulated_states = {}
@@ -184,11 +187,27 @@ class covid:
         with open('data/all_states.pickle', 'rb') as handle:
             self.all_simulated_states = pickle.load(handle)
     
+    def plot_states(self, state, time, sick, recovered, deaths):
+        time_ref, cases_ref, deaths_ref, recovered_ref = self.selected_indian_data[state].values()
+        x1 = self.convert_dates(time_ref[0], len(time_ref))
+        x2 = self.convert_dates(time_ref[0], len(time))
+        
+        plt.figure()
+        plt.scatter(x1, cases_ref, c = self.colors["active"])
+        plt.scatter(x1, recovered_ref, c = self.colors["recovered"])
+        plt.scatter(x1, deaths_ref, c = self.colors["deaths"])
+        
+        plt.plot(x2, sick, c = self.colors["active"])
+        plt.plot(x2, recovered, c = self.colors["recovered"])
+        plt.plot(x2, deaths, c = self.colors["deaths"])
+        
+        plt.show()
+    
 if __name__ == "__main__":
     start = time.time()
     COVID = covid()
-    # COVID.simulate_state("Tamil Nadu")
+    COVID.simulate_state("Tamil Nadu",0,True)
     # COVID.simulate_country("India", True, 60)
     # COVID.fit_all(60)
-    COVID.simulate_state_all()
+    # COVID.simulate_state_all()
     print(time.time() - start)
