@@ -9,7 +9,7 @@ plotly==2.2.3
 Unidecode==1.1.1
 matplotlib==2.1.1
 tweepy==3.8.0
-numpy==1.13.3
+numpy==1.22.0
 dash_table==4.6.1
 dash==1.9.1
 beautifulsoup4==4.9.0
