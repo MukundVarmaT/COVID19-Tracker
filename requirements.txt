@@ -13,5 +13,5 @@ numpy==1.13.3
 dash_table==4.6.1
 dash==1.9.1
 beautifulsoup4==4.9.0
-Pillow==7.1.1
+Pillow==9.3.0
 vaderSentiment==3.3.1
