@@ -4,7 +4,7 @@ dash_html_components==1.0.2
 Flask==1.1.1
 wordcloud==1.6.0
 scipy==1.4.1
-requests==2.22.0
+requests==2.31.0
 plotly==2.2.3
 Unidecode==1.1.1
 matplotlib==2.1.1
